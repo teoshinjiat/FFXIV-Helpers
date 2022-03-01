@@ -10,13 +10,13 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
 public class Commands extends ListenerAdapter{
 	public void onGuildMessageReceived(GuildMessageReceivedEvent event) {
-		String[] args = event.getMessage().getContentRaw().split("\\s+");
+		//String[] args = event.getMessage().getContentRaw().split("\\s+");
 		EmbedBuilder info = new EmbedBuilder();
 		Message msg;
 		
 		MessageChannel channel = event.getChannel();
-		Category category = event.getGuild().getTextChannelById("log-helper");
-		category.createTextChannel("Log Helper").queue();
+		Category category = event.getGuild().getTextChannelsByName("log-helper", true);
+		//category.createTextChannel("Log Helper").queue();
 		
 	//	TextChannel textChannel = event.getGuild().getTextChannelsByName("TSJ",true).get(0);
 //		System.out.println("textChannel : " + event.getGuild().getTextChannelsByName("副本报名",true).get(0).getId());
