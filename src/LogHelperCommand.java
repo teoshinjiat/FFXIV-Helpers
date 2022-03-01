@@ -73,12 +73,6 @@ public class LogHelperCommand extends ListenerAdapter {
 
 	Thread updateEmbedMessageThread = new Thread() {
 		public void run() {
-			try {
-				Thread.sleep(2000); // waiting for embed creation 
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
 			while (true) {
 				try {
 					Thread.sleep(2000);
@@ -96,58 +90,18 @@ public class LogHelperCommand extends ListenerAdapter {
 	}
 
 	private void lineNumbersOutOfSync() {
-		System.out.println("lineNumbersOutOfSync()");
-		System.out.println("verbose : " + logModel.previousVerboseLineNumber + " != " + logModel.currentVerboseLineNumber);
+		System.out.println("lineNumbersOutOfSync(), if not same then should update");
+		System.out.println(
+				"verbose : " + logModel.previousVerboseLineNumber + " != " + logModel.currentVerboseLineNumber);
 		System.out.println("debug : " + logModel.previousDebugLineNumber + " != " + logModel.currentDebugLineNumber);
 		System.out.println("error : " + logModel.previousErrorLineNumber + " != " + logModel.currentErrorLineNumber);
-
+		
 		if (logModel.previousVerboseLineNumber != logModel.currentVerboseLineNumber) {
-			System.out.println("new lines detected for verbose");
-			System.out.println(logModel.previousVerboseLineNumber + " != " + logModel.currentVerboseLineNumber);
-			System.out.println("logModel.currentVerboseLineNumber : " + logModel.currentVerboseLineNumber);
-			System.out.println("LogHelperCommand.embedVerboseMessageId : " + LogHelperCommand.embedVerboseMessageId);
-
-			updateEmbedFn(LogHelperCommand.embedVerboseMessageId, embedVerbose, logModel.verboseLogsList);
-			LogHelperCommand.logModel.savePreviousLineNumber("verbose");
-
+			watchVerbose.start();
 		} else if (logModel.previousDebugLineNumber != logModel.currentDebugLineNumber) {
-			System.out.println("new lines detected for debug");
-			System.out.println(logModel.previousDebugLineNumber + " != " + logModel.currentDebugLineNumber);
-
-			updateEmbedFn(LogHelperCommand.embedDebugMessageId, embedDebug, logModel.debugLogsList);
-			LogHelperCommand.logModel.savePreviousLineNumber("debug");
-
+			watchDebug.start();
 		} else if (logModel.previousErrorLineNumber != logModel.currentErrorLineNumber) {
-			System.out.println("new lines detected for error");
-			System.out.println(logModel.previousErrorLineNumber + " != " + logModel.currentErrorLineNumber);
-
-			updateEmbedFn(LogHelperCommand.embedErrorMessageId, embedError, logModel.errorLogsList);
-			LogHelperCommand.logModel.savePreviousLineNumber("error");
-		} else {
-			// System.out.println("All logs are up to date.");
-		}
-	}
-
-	private void updateEmbedFn(long messageId, EmbedBuilder embed, ArrayList<LogModel> logModel) {
-		System.out.println("updateEmbed()");
-		try {
-
-			String message = convertArrayListToOneLine((logModel));
-			System.out.println("will print this on discord...");
-			System.out.println("message size : " + message.length());
-			//
-
-			embedVerbose.setTitle("updated title");
-			embedVerbose.setFooter(message);
-			System.out.println("messageId : " + messageId);
-
-			textChannel.editMessageById(String.valueOf(messageId), embed.build()).queue();
-			// textChannel.editMessageById(String.valueOf(embedErrorMessageId), embed.build()).queue();
-
-			Thread.sleep(5000);
-
-		} catch (InterruptedException e) {
-			e.printStackTrace();
+			watchError.start();
 		}
 	}
 
@@ -170,13 +124,11 @@ public class LogHelperCommand extends ListenerAdapter {
 			sb.append(
 					logModel.get(i).getLogTimestamp() + logModel.get(i).getLogType() + logModel.get(i).getLogMessage());
 			sb.append(delim);
-			System.out.println("i : " + i);
 			i++;
 		}
 		sb.append(logModel.get(i).getLogTimestamp() + logModel.get(i).getLogType() + logModel.get(i).getLogMessage());
 
 		String res = sb.toString();
-		System.out.println(res);
 
 		String log = res; // reverse the string to split by timestamp
 //		log = splitByTimestamp(log); // to ensure that there is no message cut into half due to 2048 maxlength for a
@@ -207,20 +159,6 @@ public class LogHelperCommand extends ListenerAdapter {
 		});
 	}
 
-	private String reverseString(String input) {
-		return new StringBuilder(input).reverse().toString();
-	}
-
-	private String splitByTimestamp(String log) {
-		// System.out.println("log : " + log);
-		String[] parts = log.split("\\[");
-		for (int i = 0; i < parts.length; i++) {
-			// System.out.println("part : [" + reverseString(parts[i]));
-		}
-
-		return mergePartsIntoOneLine(parts);
-	}
-
 	private String mergePartsIntoOneLine(String[] parts) {
 		String oneLine = "";
 		for (int i = 0; i < parts.length; i++) {
@@ -228,5 +166,74 @@ public class LogHelperCommand extends ListenerAdapter {
 		}
 		// System.out.println("oneLine : " + oneLine);
 		return oneLine;
+	}
+
+	Thread watchVerbose = new Thread() {
+		public void run() {
+				System.out.println("watchVerbose running");
+					System.out.println("new lines detected for verbose");
+					System.out.println(logModel.previousVerboseLineNumber + " != " + logModel.currentVerboseLineNumber);
+					System.out.println("logModel.currentVerboseLineNumber : " + logModel.currentVerboseLineNumber);
+					System.out.println(
+							"LogHelperCommand.embedVerboseMessageId : " + LogHelperCommand.embedVerboseMessageId);
+
+					updateEmbedFn(LogHelperCommand.embedVerboseMessageId, embedVerbose, logModel.verboseLogsList);
+					textChannel.editMessageById(String.valueOf(embedVerboseMessageId), embedVerbose.build()).queue();
+
+					LogHelperCommand.logModel.savePreviousLineNumber("verbose");
+					interrupt();
+
+		}
+	};
+
+	Thread watchDebug = new Thread() {
+		public void run() {
+				System.out.println("watchDebug running");
+					System.out.println("new lines detected for debug");
+					System.out.println(logModel.previousDebugLineNumber + " != " + logModel.currentDebugLineNumber);
+
+					updateEmbedFn(LogHelperCommand.embedDebugMessageId, embedDebug, logModel.debugLogsList);
+					textChannel.editMessageById(String.valueOf(embedDebugMessageId), embedDebug.build()).queue();
+
+					LogHelperCommand.logModel.savePreviousLineNumber("debug");
+					interrupt();
+		}
+	};
+
+	Thread watchError = new Thread() {
+		public void run() {
+				System.out.println("watchError running");
+				System.out.println("new lines detected for error");
+				System.out.println(logModel.previousErrorLineNumber + " != " + logModel.currentErrorLineNumber);
+
+					updateEmbedFn(LogHelperCommand.embedErrorMessageId, embedError, logModel.errorLogsList);
+					textChannel.editMessageById(String.valueOf(embedErrorMessageId), embedError.build()).queue();
+					LogHelperCommand.logModel.savePreviousLineNumber("error");
+					interrupt();			
+		}
+	};
+
+	private void updateEmbedFn(long messageId, EmbedBuilder embed, ArrayList<LogModel> logModel) {
+		System.out.println("updating embed in discord()");
+		try {
+			String message = convertArrayListToOneLine((logModel));
+			embed.setTitle("updated title");
+			embed.setFooter(message);
+			// textChannel.editMessageById(String.valueOf(embedErrorMessageId),
+			// embed.build()).queue();
+			Thread.sleep(545);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+	}
+
+	private void threadSleep(int timer) {
+		try {
+			Thread.sleep(timer);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} // waiting for embed creation
+
 	}
 }

@@ -51,8 +51,6 @@ public class LogReader {
 			logModel.debugLogsList.add(setter(parts));
 			logModel.currentDebugLineNumber = logModel.debugLogsList.size();
 		} else if (line.contains(Constants.errorTag)) {
-			System.out.println("error log detected");
-
 			logModel.errorLogsList.add(setter(parts));
 			logModel.currentErrorLineNumber = logModel.errorLogsList.size();
 		}

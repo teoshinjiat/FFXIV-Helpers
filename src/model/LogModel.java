@@ -33,17 +33,26 @@ public class LogModel extends LogContents {
 	public String previousVerboseSize;
 	
 	public void savePreviousLineNumber(String flag) {
+		System.out.println("flagflagflagflagflagflagflagflagflagflagflagflagflagflagflagflagflagflagflagflagflagflag : " + flag);
 		switch(flag) {
 		case "verbose":
+			System.out.println("verbose only");
 			this.previousVerboseLineNumber = this.verboseLogsList.size();
+			break;
 		case "debug":
+			System.out.println("debug only");
 			this.previousDebugLineNumber = this.debugLogsList.size();
+			break;
 		case "error":
+			System.out.println("error only");
 			this.previousErrorLineNumber = this.errorLogsList.size();
+			break;
 		default:
+			System.out.println("DEFAULT FOR ALL");
 			this.previousVerboseLineNumber = this.verboseLogsList.size();
 			this.previousDebugLineNumber = this.debugLogsList.size();
 			this.previousErrorLineNumber = this.errorLogsList.size();
+			break;
 		}
 	}
 
