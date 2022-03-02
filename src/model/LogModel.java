@@ -15,6 +15,11 @@ public class LogModel extends LogContents {
 	public int currentDebugLineNumber = 0;
 	public int currentErrorLineNumber = 0;
 	public int currentVerboseLineNumber = 0;
+	
+	public String debugLastLogTimestamp = "";
+	public String errorLastLogTimestamp = "";
+	public String verboseLastLogTimestamp = "";
+
 
 
 	public int fileSize = 0;

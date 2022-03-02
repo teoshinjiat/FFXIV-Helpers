@@ -105,8 +105,31 @@ public class LogHelperCommand extends ListenerAdapter {
 			updateDebugEmbed();
 		} else if (logModel.previousErrorLineNumber != logModel.currentErrorLineNumber) {
 			updateErrorEmbed();
+		} else {
+			updateDebugElapsedTime();
+			updateErrorElapsedTime();
+			updateVerboseElapsedTime();
+			updateAllEmbed(); // update elapsed time
 		}
 		pauseThread();
+	}
+
+	private void updateDebugElapsedTime() {
+		embedDebug.setTitle("Elapsed time since last log " + getLastLogTimestamp(logModel.debugLastLogTimestamp));
+	}
+	
+	private void updateErrorElapsedTime() {
+		embedError.setTitle("Elapsed time since last log " + getLastLogTimestamp(logModel.errorLastLogTimestamp));
+	}
+	
+	private void updateVerboseElapsedTime() {
+		embedVerbose.setTitle("Elapsed time since last log " + getLastLogTimestamp(logModel.verboseLastLogTimestamp));
+	}
+
+	private void updateAllEmbed() {
+		updateVerboseEmbed();
+		updateErrorEmbed();
+		updateDebugEmbed();
 	}
 
 	// convert last 20(array element) lines into one line
@@ -132,20 +155,44 @@ public class LogHelperCommand extends ListenerAdapter {
 		}
 		sb.append(logModel.get(i).getLogTimestamp() + "     " + logModel.get(i).getLogType() + "     "
 				+ logModel.get(i).getLogMessage());
+		saveLastLogTimeStamp(logModel.get(i).getLogTimestamp(), logModel.get(i).getLogType());
 
-		String res = sb.toString();
+		String res = "";
+		try {
+			res = sb.toString();
 
-		String log = res; // reverse the string to split by timestamp
-//		log = splitByTimestamp(log); // to ensure that there is no message cut into half due to 2048 maxlength for a
-//										// string
-//		log = reverseString(log); // revert the reverse
+		} catch (Exception e) {
+			throw e;
+		}
+
+		String log = res;
 		return log;
+	}
+
+	private void saveLastLogTimeStamp(String logTimestamp, String logType) {
+		System.out.println("logType : " + logType);
+		switch (logType) {
+		case "(Verbose)": // TODO: constants
+			System.out.println("(verbose) : " + logTimestamp);
+			logModel.verboseLastLogTimestamp = logTimestamp;
+			updateVerboseElapsedTime();
+			break;
+		case "(Debug)":
+			System.out.println("(debug) : " + logTimestamp);
+			logModel.debugLastLogTimestamp = logTimestamp;
+			updateDebugElapsedTime();
+			break;
+		case "(Error)":
+			System.out.println("(error) : " + logTimestamp);
+			logModel.errorLastLogTimestamp = logTimestamp;
+			updateErrorElapsedTime();
+			break;
+		}
 	}
 
 	private void createBaseEmbed() {
 		System.out.println("sendVerbose()");
 		// TODO Auto-generated method stub
-
 		textChannel.sendMessage(debugMessage).queue((message) -> {
 			LogHelperCommand.embedDebugMessageId = message.getIdLong();
 			System.out.println("LogHelperCommand.embedDebugMessageId : " + LogHelperCommand.embedDebugMessageId);
@@ -171,29 +218,31 @@ public class LogHelperCommand extends ListenerAdapter {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		updateEmbedFn(LogHelperCommand.embedVerboseMessageId, embedVerbose, logModel.verboseLogsList);
+		updateEmbed(LogHelperCommand.embedVerboseMessageId, embedVerbose, logModel.verboseLogsList);
 		textChannel.editMessageById(String.valueOf(embedVerboseMessageId), embedVerbose.build()).queue();
 		LogHelperCommand.logModel.savePreviousLineNumber("verbose");
 	};
 
 	private void updateDebugEmbed() {
-		updateEmbedFn(LogHelperCommand.embedDebugMessageId, embedDebug, logModel.debugLogsList);
+		updateEmbed(LogHelperCommand.embedDebugMessageId, embedDebug, logModel.debugLogsList);
 		textChannel.editMessageById(String.valueOf(embedDebugMessageId), embedDebug.build()).queue();
 		LogHelperCommand.logModel.savePreviousLineNumber("debug");
 	};
 
 	private void updateErrorEmbed() {
-		updateEmbedFn(LogHelperCommand.embedErrorMessageId, embedError, logModel.errorLogsList);
+		updateEmbed(LogHelperCommand.embedErrorMessageId, embedError, logModel.errorLogsList);
 		textChannel.editMessageById(String.valueOf(embedErrorMessageId), embedError.build()).queue();
 		LogHelperCommand.logModel.savePreviousLineNumber("error");
 	};
 
-	private void updateEmbedFn(long messageId, EmbedBuilder embed, ArrayList<LogModel> logModel) {
+	private void updateEmbed(long messageId, EmbedBuilder embed, ArrayList<LogModel> logModel) {
 		System.out.println("updating embed in discord()");
 		try {
-			String elapsedTimeSinceLastLog = getLastLogTimestamp(logModel.get(logModel.size() - 1));
+			// String elapsedTimeSinceLastLog =
+			// getLastLogTimestamp(logModel.get(logModel.size() - 1).getLogTimestamp());
 			String message = convertArrayListToOneLine((logModel));
-			embed.setTitle("Elapsed time since last log " + elapsedTimeSinceLastLog);
+
+			// embed.setTitle("Elapsed time since last log " + elapsedTimeSinceLastLog);
 			embed.setFooter(message);
 			// textChannel.editMessageById(String.valueOf(embedErrorMessageId),
 			// embed.build()).queue();
@@ -203,9 +252,10 @@ public class LogHelperCommand extends ListenerAdapter {
 		}
 	}
 
-	private String getLastLogTimestamp(LogModel logModel) {
+	private String getLastLogTimestamp(String lastLogTimestamp) {
 		// 02/03/2022 02:05:41
-		String lastLogTimeStamp = logModel.getLogTimestamp().replaceAll("\\[", "").replaceAll("\\]", "");
+		System.out.println("lastLogTimestamp : " + lastLogTimestamp);
+		String lastLogTimeStamp = lastLogTimestamp.replaceAll("\\[", "").replaceAll("\\]", "");
 		String currentTimeStamp = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(new Date());
 
 		DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
@@ -222,7 +272,7 @@ public class LogHelperCommand extends ListenerAdapter {
 		} else {
 			int minute = (int) (seconds / 60);
 			int remainingSeconds = (int) (seconds % 60);
-			return String.valueOf(minute + (minute==1 ? " minute " : " minutes ") + remainingSeconds + " seconds.");
+			return String.valueOf(minute + (minute == 1 ? " minute " : " minutes ") + remainingSeconds + " seconds.");
 		}
 	}
 
