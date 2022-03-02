@@ -1,7 +1,7 @@
 # FFXIV-Helpers
 Discord Bot developed using JDA
 
-# Timeline ### Click to expand
+# Timeline
 <details>
   <summary>2/Mar/2022</summary>
   
