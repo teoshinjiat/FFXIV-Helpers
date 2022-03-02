@@ -2,7 +2,7 @@
 Discord Bot developed using JDA
 
 # Timeline
-## Click to expand
+### Click to expand
 
 <details>
   <summary>2/Mar/2022</summary>
