@@ -42,7 +42,6 @@ public class LogReader {
 
 	public static void processLine(String line) {
 		String[] parts = line.split("\\|", 3);
-
 		if (line.contains(Constants.verboseTag)) {
 			logHelperService.verboseModel.logList.add(setter(parts));
 			logHelperService.verboseModel.currentLineNumber = logHelperService.verboseModel.logList.size();

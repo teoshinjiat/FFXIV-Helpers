@@ -138,23 +138,24 @@ public class LogHelperCommand extends ListenerAdapter {
 
 	private void lineNumbersOutOfSync() {
 		System.out.println("lineNumbersOutOfSync(), if not same then should update the embed");
+		System.out.println("logHelperService.retainerUndercutModel.previousLineNumber : " + logHelperService.retainerUndercutModel.previousLineNumber);
 		pauseThread();
 		if (logHelperService.verboseModel.previousLineNumber < logHelperService.verboseModel.currentLineNumber) {
 			System.out.println("Updating verboseModel");
-			updateVerboseEmbed();
+			updateVerboseEmbed(false);
 		} else if (logHelperService.debugModel.previousLineNumber < logHelperService.debugModel.currentLineNumber) {
 			System.out.println("Updating debugModel");
-			updateDebugEmbed();
+			updateDebugEmbed(false);
 		} else if (logHelperService.errorModel.previousLineNumber < logHelperService.errorModel.currentLineNumber) {
 			System.out.println("Updating errorModel");
-			updateErrorEmbed();
+			updateErrorEmbed(false);
 			alertMe("<@" + Constants.userId + "> An error occurred in AHK script.");
 		} else if (logHelperService.retainerModel.previousLineNumber < logHelperService.retainerModel.currentLineNumber) {
 			System.out.println("Updating retainerModel");
-			updateRetainerEmbed();
+			updateRetainerEmbed(false);
 		} else if (logHelperService.retainerUndercutModel.previousLineNumber < logHelperService.retainerUndercutModel.currentLineNumber) {
 			System.out.println("Updating retainerUndercutModel");
-			updateRetainerUndercutEmbed();
+			updateRetainerUndercutEmbed(false);
 			alertMe("<@" + Constants.userId + "> One item have been undercut from AHK script.");
 		} else { // if all lines are the same, then only update elapsed time
 			System.out.println("Updating all elapsed timestamp");
@@ -167,26 +168,26 @@ public class LogHelperCommand extends ListenerAdapter {
 		if (!logHelperService.verboseModel.logList.isEmpty()
 				&& !logHelperService.verboseModel.lastLogTimestamp.isBlank()) {
 			updateVerboseElapsedTime();
-			updateVerboseEmbed();
+			updateVerboseEmbed(true);
 		}
 		if (!logHelperService.errorModel.logList.isEmpty() && !logHelperService.errorModel.lastLogTimestamp.isBlank()) {
 			updateErrorElapsedTime();
-			updateErrorEmbed();
+			updateErrorEmbed(true);
 		}
 		if (!logHelperService.debugModel.logList.isEmpty() && !logHelperService.debugModel.lastLogTimestamp.isBlank()) {
 			updateDebugElapsedTime();
-			updateDebugEmbed();
+			updateDebugEmbed(true);
 		}
 		if (!logHelperService.retainerModel.logList.isEmpty()
 				&& !logHelperService.retainerModel.lastLogTimestamp.isBlank()) {
 			updateRetainerElapsedTime();
-			updateRetainerEmbed();
+			updateRetainerEmbed(true);
 		}
 
 		if (!logHelperService.retainerUndercutModel.logList.isEmpty()
 				&& !logHelperService.retainerUndercutModel.lastLogTimestamp.isBlank()) {
 			updateRetainerUndercutElapsedTime();
-			updateRetainerUndercutEmbed();
+			updateRetainerUndercutEmbed(true);
 		}
 	}
 
@@ -291,44 +292,48 @@ public class LogHelperCommand extends ListenerAdapter {
 		}
 	}
 
-	private void updateVerboseEmbed() {
-		try {
-			Thread.sleep(3000);
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+	private void updateVerboseEmbed(boolean updateElapsedOnly) {
 		updateEmbed(LogHelperCommand.embedVerboseMessageId, embedVerbose, logHelperService.verboseModel.logList);
 		textChannel.editMessageById(String.valueOf(embedVerboseMessageId), embedVerbose.build()).queue();
 		// LogHelperCommand.logModel.savePreviousLineNumber("verbose");
-		logHelperService.verboseModel.savePreviousLineNumber();
+		if(!updateElapsedOnly) {
+			logHelperService.verboseModel.savePreviousLineNumber();
+		}
 	};
 
-	private void updateDebugEmbed() {
+	private void updateDebugEmbed(boolean updateElapsed) {
 		updateEmbed(LogHelperCommand.embedDebugMessageId, embedDebug, logHelperService.debugModel.logList);
 		textChannel.editMessageById(String.valueOf(embedDebugMessageId), embedDebug.build()).queue();
-		logHelperService.debugModel.savePreviousLineNumber();
-
+		if(!updateElapsed) {
+			logHelperService.debugModel.savePreviousLineNumber();
+		}
 	};
 
-	private void updateErrorEmbed() {
+	private void updateErrorEmbed(boolean updateElapsed) {
 		updateEmbed(LogHelperCommand.embedErrorMessageId, embedError, logHelperService.errorModel.logList);
 		textChannel.editMessageById(String.valueOf(embedErrorMessageId), embedError.build()).queue();
-		logHelperService.errorModel.savePreviousLineNumber();
+		if(!updateElapsed) {
+			logHelperService.errorModel.savePreviousLineNumber();
+
+		}
 	};
 
-	private void updateRetainerEmbed() {
+	private void updateRetainerEmbed(boolean updateElapsed) {
 		updateEmbed(LogHelperCommand.embedRetainerMessageId, embedRetainer, logHelperService.retainerModel.logList);
 		textChannel.editMessageById(String.valueOf(embedRetainerMessageId), embedRetainer.build()).queue();
-		logHelperService.retainerModel.savePreviousLineNumber();
+		if(!updateElapsed) {
+			logHelperService.retainerModel.savePreviousLineNumber();
+		}
 	};
 
-	private void updateRetainerUndercutEmbed() {
+	private void updateRetainerUndercutEmbed(boolean updateElapsed) {
 		updateEmbed(LogHelperCommand.embedRetainerUndercutMessageId, embedRetainerUndercut,
 				logHelperService.retainerUndercutModel.logList);
 		textChannel.editMessageById(String.valueOf(embedRetainerUndercutMessageId), embedRetainerUndercut.build())
 				.queue();
-		logHelperService.retainerUndercutModel.savePreviousLineNumber();
+		if(!updateElapsed) {
+			logHelperService.retainerUndercutModel.savePreviousLineNumber();
+		}
 	};
 
 	private void updateEmbed(long messageId, EmbedBuilder embed, ArrayList<LogContents> logList) {
