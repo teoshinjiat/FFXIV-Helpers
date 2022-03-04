@@ -1,4 +1,5 @@
 import java.awt.Color;
+import java.io.File;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -102,8 +103,20 @@ public class LogHelperCommand extends ListenerAdapter {
 	// run initially
 	Thread fileReadThread = new Thread() {
 		public void run() {
-			System.out.println("fileReadThread()");
-			LogReader.readFile();
+			while(true) {
+				// rerun thread every 5s because file might be renamed for archieving function
+				
+				System.out.println("fileReadThread()");
+				new LogReader();
+				// LogReader.readFile();
+				LogReader.readFile();
+				try {
+					Thread.sleep(5000);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} // 2 seconds interval to check for new lines in log files
+			}
 		}
 	};
 
@@ -114,7 +127,7 @@ public class LogHelperCommand extends ListenerAdapter {
 			while (true) {
 				lineNumbersOutOfSync(); // if there is new line, then only update embed message
 				try {
-					Thread.sleep(500); // 2 seconds interval to check for new lines in log files
+					Thread.sleep(2000); // 2 seconds interval to check for new lines in log files
 				} catch (InterruptedException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -126,19 +139,25 @@ public class LogHelperCommand extends ListenerAdapter {
 	private void lineNumbersOutOfSync() {
 		System.out.println("lineNumbersOutOfSync(), if not same then should update the embed");
 		pauseThread();
-		if (logHelperService.verboseModel.previousLineNumber != logHelperService.verboseModel.currentLineNumber) {
+		if (logHelperService.verboseModel.previousLineNumber < logHelperService.verboseModel.currentLineNumber) {
+			System.out.println("Updating verboseModel");
 			updateVerboseEmbed();
-		} else if (logHelperService.debugModel.previousLineNumber != logHelperService.debugModel.currentLineNumber) {
+		} else if (logHelperService.debugModel.previousLineNumber < logHelperService.debugModel.currentLineNumber) {
+			System.out.println("Updating debugModel");
 			updateDebugEmbed();
-		} else if (logHelperService.errorModel.previousLineNumber != logHelperService.errorModel.currentLineNumber) {
+		} else if (logHelperService.errorModel.previousLineNumber < logHelperService.errorModel.currentLineNumber) {
+			System.out.println("Updating errorModel");
 			updateErrorEmbed();
 			alertMe("<@" + Constants.userId + "> An error occurred in AHK script.");
-		} else if (logHelperService.retainerModel.previousLineNumber != logHelperService.retainerModel.currentLineNumber) {
+		} else if (logHelperService.retainerModel.previousLineNumber < logHelperService.retainerModel.currentLineNumber) {
+			System.out.println("Updating retainerModel");
 			updateRetainerEmbed();
-		} else if (logHelperService.retainerUndercutModel.previousLineNumber != logHelperService.retainerUndercutModel.currentLineNumber) {
+		} else if (logHelperService.retainerUndercutModel.previousLineNumber < logHelperService.retainerUndercutModel.currentLineNumber) {
+			System.out.println("Updating retainerUndercutModel");
 			updateRetainerUndercutEmbed();
 			alertMe("<@" + Constants.userId + "> One item have been undercut from AHK script.");
-		} else {
+		} else { // if all lines are the same, then only update elapsed time
+			System.out.println("Updating all elapsed timestamp");
 			updateAllElapsedTimeEmbed(); // update elapsed time
 		}
 		pauseThread();
@@ -164,10 +183,6 @@ public class LogHelperCommand extends ListenerAdapter {
 			updateRetainerEmbed();
 		}
 
-		System.out.println("logHelperService.retainerUndercutModel.logList.isEmpty() : "
-				+ logHelperService.retainerUndercutModel.logList.isEmpty());
-		System.out.println("logHelperService.retainerUndercutModel.lastLogTimestamp.isBlank() : "
-				+ logHelperService.retainerUndercutModel.lastLogTimestamp.isBlank());
 		if (!logHelperService.retainerUndercutModel.logList.isEmpty()
 				&& !logHelperService.retainerUndercutModel.lastLogTimestamp.isBlank()) {
 			updateRetainerUndercutElapsedTime();
@@ -176,7 +191,6 @@ public class LogHelperCommand extends ListenerAdapter {
 	}
 
 	private void updateDebugElapsedTime() {
-		System.out.println("updateDebugElapsedTime()");
 		if (!logHelperService.debugModel.lastLogTimestamp.isBlank()) {
 			embedDebug.setTitle(
 					"Elapsed time since last log " + getLastLogTimestamp(logHelperService.debugModel.lastLogTimestamp));
@@ -184,7 +198,6 @@ public class LogHelperCommand extends ListenerAdapter {
 	}
 
 	private void updateErrorElapsedTime() {
-		System.out.println("updateErrorElapsedTime()");
 		if (!logHelperService.errorModel.lastLogTimestamp.isBlank()) {
 			embedError.setTitle(
 					"Elapsed time since last log " + getLastLogTimestamp(logHelperService.errorModel.lastLogTimestamp));
@@ -192,7 +205,6 @@ public class LogHelperCommand extends ListenerAdapter {
 	}
 
 	private void updateVerboseElapsedTime() {
-		System.out.println("updateVerboseElapsedTime()");
 		if (!logHelperService.verboseModel.lastLogTimestamp.isBlank()) {
 			embedVerbose.setTitle("Elapsed time since last log "
 					+ getLastLogTimestamp(logHelperService.verboseModel.lastLogTimestamp));
@@ -200,7 +212,6 @@ public class LogHelperCommand extends ListenerAdapter {
 	}
 
 	private void updateRetainerElapsedTime() {
-		System.out.println("updateRetainerElapsedTime()");
 		if (!logHelperService.retainerModel.lastLogTimestamp.isBlank()) {
 			embedRetainer.setTitle("Elapsed time since last log "
 					+ getLastLogTimestamp(logHelperService.retainerModel.lastLogTimestamp));
@@ -208,7 +219,6 @@ public class LogHelperCommand extends ListenerAdapter {
 	}
 
 	private void updateRetainerUndercutElapsedTime() {
-		System.out.println("updateRetainerUndercutElapsedTime()");
 		if (!logHelperService.retainerUndercutModel.lastLogTimestamp.isBlank()) {
 			embedRetainerUndercut.setTitle("Elapsed time since last log "
 					+ getLastLogTimestamp(logHelperService.retainerUndercutModel.lastLogTimestamp));
@@ -236,7 +246,6 @@ public class LogHelperCommand extends ListenerAdapter {
 		sb.append(logList.get(i).getLogTimestamp() + "     " + logList.get(i).getLogType() + "     "
 				+ logList.get(i).getLogMessage());
 
-		System.out.println("logList.get(i).getLogTimestamp() : " + logList.get(i).getLogTimestamp());
 		saveLastLogTimeStamp(logList.get(i).getLogTimestamp(), logList.get(i).getLogType());
 
 		String log = "";
@@ -256,9 +265,6 @@ public class LogHelperCommand extends ListenerAdapter {
 	}
 
 	private void saveLastLogTimeStamp(String logTimestamp, String logType) {
-		System.out.println("logType : " + logType);
-		System.out.println("String logTimestamp : " + logTimestamp);
-
 		switch (logType) {
 		case "(Verbose)": // TODO: constants
 			logHelperService.verboseModel.lastLogTimestamp = logTimestamp;
@@ -343,7 +349,6 @@ public class LogHelperCommand extends ListenerAdapter {
 
 	private String getLastLogTimestamp(String lastLogTimestamp) {
 		String lastLogTimeStamp = lastLogTimestamp.replace("[", "").replace("]", "");
-		System.out.println("lastLogTimeStamp : " + lastLogTimeStamp);
 		String currentTimeStamp = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(new Date());
 		DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
 		LocalDateTime arrival = LocalDateTime.parse(lastLogTimeStamp, fmt);
@@ -398,6 +403,7 @@ public class LogHelperCommand extends ListenerAdapter {
 	}
 
 	private void alertMe(String text) {
-		textChannel.sendMessage(text).queue();
+		System.out.println("alertMe()");
+		textChannel.sendMessage(text).queue(); // async
 	}
 }
