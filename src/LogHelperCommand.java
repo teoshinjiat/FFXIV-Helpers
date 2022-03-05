@@ -1,5 +1,4 @@
 import java.awt.Color;
-import java.io.File;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -103,9 +102,8 @@ public class LogHelperCommand extends ListenerAdapter {
 	// run initially
 	Thread fileReadThread = new Thread() {
 		public void run() {
-			while(true) {
+			while (true) {
 				// rerun thread every 5s because file might be renamed for archieving function
-				
 				System.out.println("fileReadThread()");
 				new LogReader();
 				// LogReader.readFile();
@@ -137,8 +135,6 @@ public class LogHelperCommand extends ListenerAdapter {
 	};
 
 	private void lineNumbersOutOfSync() {
-		System.out.println("lineNumbersOutOfSync(), if not same then should update the embed");
-		System.out.println("logHelperService.retainerUndercutModel.previousLineNumber : " + logHelperService.retainerUndercutModel.previousLineNumber);
 		pauseThread();
 		if (logHelperService.verboseModel.previousLineNumber < logHelperService.verboseModel.currentLineNumber) {
 			System.out.println("Updating verboseModel");
@@ -296,7 +292,7 @@ public class LogHelperCommand extends ListenerAdapter {
 		updateEmbed(LogHelperCommand.embedVerboseMessageId, embedVerbose, logHelperService.verboseModel.logList);
 		textChannel.editMessageById(String.valueOf(embedVerboseMessageId), embedVerbose.build()).queue();
 		// LogHelperCommand.logModel.savePreviousLineNumber("verbose");
-		if(!updateElapsedOnly) {
+		if (!updateElapsedOnly) {
 			logHelperService.verboseModel.savePreviousLineNumber();
 		}
 	};
@@ -304,7 +300,7 @@ public class LogHelperCommand extends ListenerAdapter {
 	private void updateDebugEmbed(boolean updateElapsed) {
 		updateEmbed(LogHelperCommand.embedDebugMessageId, embedDebug, logHelperService.debugModel.logList);
 		textChannel.editMessageById(String.valueOf(embedDebugMessageId), embedDebug.build()).queue();
-		if(!updateElapsed) {
+		if (!updateElapsed) {
 			logHelperService.debugModel.savePreviousLineNumber();
 		}
 	};
@@ -312,7 +308,7 @@ public class LogHelperCommand extends ListenerAdapter {
 	private void updateErrorEmbed(boolean updateElapsed) {
 		updateEmbed(LogHelperCommand.embedErrorMessageId, embedError, logHelperService.errorModel.logList);
 		textChannel.editMessageById(String.valueOf(embedErrorMessageId), embedError.build()).queue();
-		if(!updateElapsed) {
+		if (!updateElapsed) {
 			logHelperService.errorModel.savePreviousLineNumber();
 
 		}
@@ -321,7 +317,7 @@ public class LogHelperCommand extends ListenerAdapter {
 	private void updateRetainerEmbed(boolean updateElapsed) {
 		updateEmbed(LogHelperCommand.embedRetainerMessageId, embedRetainer, logHelperService.retainerModel.logList);
 		textChannel.editMessageById(String.valueOf(embedRetainerMessageId), embedRetainer.build()).queue();
-		if(!updateElapsed) {
+		if (!updateElapsed) {
 			logHelperService.retainerModel.savePreviousLineNumber();
 		}
 	};
@@ -331,7 +327,7 @@ public class LogHelperCommand extends ListenerAdapter {
 				logHelperService.retainerUndercutModel.logList);
 		textChannel.editMessageById(String.valueOf(embedRetainerUndercutMessageId), embedRetainerUndercut.build())
 				.queue();
-		if(!updateElapsed) {
+		if (!updateElapsed) {
 			logHelperService.retainerUndercutModel.savePreviousLineNumber();
 		}
 	};
