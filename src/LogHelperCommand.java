@@ -36,7 +36,8 @@ public class LogHelperCommand extends ListenerAdapter {
 	public static long embedRetainerMessageId;
 	public static long embedRetainerUndercutMessageId;
 
-	public static TextChannel textChannel;
+	public static TextChannel logHelperChannel;
+	public static TextChannel retainerNotificationChannel;
 
 	public Object lock = this;
 	public boolean pause = false;
@@ -47,7 +48,8 @@ public class LogHelperCommand extends ListenerAdapter {
 			new LogReader();
 			fileReadThread.start();
 
-			textChannel = event.getGuild().getTextChannelsByName("log-helper", true).get(0);
+			logHelperChannel = event.getGuild().getTextChannelsByName("log-helper", true).get(0);
+			retainerNotificationChannel = event.getGuild().getTextChannelsByName("retainer-notification", true).get(0);
 
 			// create new embed
 			embedDebug.setAuthor("Debug Log");
@@ -78,23 +80,23 @@ public class LogHelperCommand extends ListenerAdapter {
 
 	private void createBaseEmbed() {
 		// TODO Auto-generated method stub
-		textChannel.sendMessage(debugMessage).queue((message) -> {
+		logHelperChannel.sendMessage(debugMessage).queue((message) -> {
 			LogHelperCommand.embedDebugMessageId = message.getIdLong();
 		});
 
-		textChannel.sendMessage(errorMessage).queue((message) -> {
+		logHelperChannel.sendMessage(errorMessage).queue((message) -> {
 			LogHelperCommand.embedErrorMessageId = message.getIdLong();
 		});
 
-		textChannel.sendMessage(verboseMessage).queue((message) -> {
+		logHelperChannel.sendMessage(verboseMessage).queue((message) -> {
 			LogHelperCommand.embedVerboseMessageId = message.getIdLong();
 		});
 
-		textChannel.sendMessage(retainerMessage).queue((message) -> {
+		logHelperChannel.sendMessage(retainerMessage).queue((message) -> {
 			LogHelperCommand.embedRetainerMessageId = message.getIdLong();
 		});
 
-		textChannel.sendMessage(retainerUndercutMessage).queue((message) -> {
+		logHelperChannel.sendMessage(retainerUndercutMessage).queue((message) -> {
 			LogHelperCommand.embedRetainerUndercutMessageId = message.getIdLong();
 		});
 	}
@@ -290,7 +292,7 @@ public class LogHelperCommand extends ListenerAdapter {
 
 	private void updateVerboseEmbed(boolean updateElapsedOnly) {
 		updateEmbed(LogHelperCommand.embedVerboseMessageId, embedVerbose, logHelperService.verboseModel.logList);
-		textChannel.editMessageById(String.valueOf(embedVerboseMessageId), embedVerbose.build()).queue();
+		logHelperChannel.editMessageById(String.valueOf(embedVerboseMessageId), embedVerbose.build()).queue();
 		// LogHelperCommand.logModel.savePreviousLineNumber("verbose");
 		if (!updateElapsedOnly) {
 			logHelperService.verboseModel.savePreviousLineNumber();
@@ -299,7 +301,7 @@ public class LogHelperCommand extends ListenerAdapter {
 
 	private void updateDebugEmbed(boolean updateElapsed) {
 		updateEmbed(LogHelperCommand.embedDebugMessageId, embedDebug, logHelperService.debugModel.logList);
-		textChannel.editMessageById(String.valueOf(embedDebugMessageId), embedDebug.build()).queue();
+		logHelperChannel.editMessageById(String.valueOf(embedDebugMessageId), embedDebug.build()).queue();
 		if (!updateElapsed) {
 			logHelperService.debugModel.savePreviousLineNumber();
 		}
@@ -307,7 +309,7 @@ public class LogHelperCommand extends ListenerAdapter {
 
 	private void updateErrorEmbed(boolean updateElapsed) {
 		updateEmbed(LogHelperCommand.embedErrorMessageId, embedError, logHelperService.errorModel.logList);
-		textChannel.editMessageById(String.valueOf(embedErrorMessageId), embedError.build()).queue();
+		logHelperChannel.editMessageById(String.valueOf(embedErrorMessageId), embedError.build()).queue();
 		if (!updateElapsed) {
 			logHelperService.errorModel.savePreviousLineNumber();
 
@@ -316,7 +318,7 @@ public class LogHelperCommand extends ListenerAdapter {
 
 	private void updateRetainerEmbed(boolean updateElapsed) {
 		updateEmbed(LogHelperCommand.embedRetainerMessageId, embedRetainer, logHelperService.retainerModel.logList);
-		textChannel.editMessageById(String.valueOf(embedRetainerMessageId), embedRetainer.build()).queue();
+		logHelperChannel.editMessageById(String.valueOf(embedRetainerMessageId), embedRetainer.build()).queue();
 		if (!updateElapsed) {
 			logHelperService.retainerModel.savePreviousLineNumber();
 		}
@@ -325,7 +327,7 @@ public class LogHelperCommand extends ListenerAdapter {
 	private void updateRetainerUndercutEmbed(boolean updateElapsed) {
 		updateEmbed(LogHelperCommand.embedRetainerUndercutMessageId, embedRetainerUndercut,
 				logHelperService.retainerUndercutModel.logList);
-		textChannel.editMessageById(String.valueOf(embedRetainerUndercutMessageId), embedRetainerUndercut.build())
+		logHelperChannel.editMessageById(String.valueOf(embedRetainerUndercutMessageId), embedRetainerUndercut.build())
 				.queue();
 		if (!updateElapsed) {
 			logHelperService.retainerUndercutModel.savePreviousLineNumber();
@@ -405,6 +407,6 @@ public class LogHelperCommand extends ListenerAdapter {
 
 	private void alertMe(String text) {
 		System.out.println("alertMe()");
-		textChannel.sendMessage(text).queue(); // async
+		retainerNotificationChannel.sendMessage(text).queue(); // async
 	}
 }
