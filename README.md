@@ -1,7 +1,7 @@
 # FFXIV-Helpers
 Discord Bot developed using JDA
 
-# Timeline
+# Timeline (showcase)
 #### Click to expand
 
 <details>
